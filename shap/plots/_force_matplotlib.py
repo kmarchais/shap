@@ -6,16 +6,17 @@ from matplotlib.font_manager import FontProperties
 from matplotlib.patches import PathPatch
 from matplotlib.path import Path
 
+from shap.plots import colors
 
-def draw_bars(out_value, features, feature_type, width_separators, width_bar, colors=None):
+
+def draw_bars(out_value, features, feature_type, width_separators, width_bar, color=None):
     """Draw the bars and separators."""
     rectangle_list = []
     separator_list = []
-    if colors is None:
-        colors = {
-            'positive': ['#ff0d55'],
-            # 'negative': ['#2197ff', '#d6ecff'],
-            'negative': ['#1f77b4'],
+    if color is None:
+        color = {
+            'positive': colors.red_rgb,
+            'negative': colors.blue_rgb,
         }
 
     pre_val = out_value
@@ -27,8 +28,6 @@ def draw_bars(out_value, features, feature_type, width_separators, width_bar, co
 
             separator_indent = np.abs(width_separators)
             separator_pos = left_bound
-            # colors = ['#FF0D57', '#FFC3D5']
-            # colors = ['#ff7f0e', '#FFC3D5']
         else:
             left_bound = pre_val
             right_bound = float(features[0])
@@ -36,8 +35,6 @@ def draw_bars(out_value, features, feature_type, width_separators, width_bar, co
 
             separator_indent = - np.abs(width_separators)
             separator_pos = right_bound
-            # colors = ['#1E88E5', '#D1E6FA']
-            # colors = ['#1f77b4', '#D1E6FA']
 
         # Create rectangle
         if index == 0:
@@ -65,7 +62,7 @@ def draw_bars(out_value, features, feature_type, width_separators, width_bar, co
                                 [left_bound + separator_indent * 0.90, (width_bar / 2)]]
 
         line = plt.Polygon(points_rectangle, closed=True, fill=True,
-                           facecolor=colors[feature_type], linewidth=0)
+                           facecolor=color[feature_type], linewidth=0)
         rectangle_list += [line]
 
         # Create separator
@@ -74,20 +71,20 @@ def draw_bars(out_value, features, feature_type, width_separators, width_bar, co
                             [separator_pos, width_bar]]
 
         line = plt.Polygon(points_separator, closed=None, fill=None,
-                           edgecolor=colors[feature_type], alpha=0.5, lw=3)
+                           edgecolor=color[feature_type], alpha=0.5, lw=3)
         separator_list += [line]
 
     return rectangle_list, separator_list
 
 
-def draw_labels(fig, ax, out_value, features, feature_type, offset_text, total_effect=0, min_perc=0.05, text_rotation=0, colors=None):
+def draw_labels(fig, ax, out_value, features, feature_type, offset_text, total_effect=0, min_perc=0.05, text_rotation=0, color=None):
     start_text = out_value
     pre_val = out_value
     
-    if colors is None:
-        colors = {
-            'positive': '#ff0d55',
-            'negative': '#1f77b4',
+    if color is None:
+        color = {
+            'positive': colors.red_rgb,
+            'negative': colors.blue_rgb,
         }
 
     # Define variables specific to positive and negative effect features
@@ -101,7 +98,7 @@ def draw_labels(fig, ax, out_value, features, feature_type, offset_text, total_e
     # Draw initial line
     if feature_type == 'positive':
         x, y = np.array([[pre_val, pre_val], [0, -0.18]])
-        line = lines.Line2D(x, y, lw=1., alpha=0.5, color=colors[feature_type])
+        line = lines.Line2D(x, y, lw=1., alpha=0.5, color=color[feature_type])
         line.set_clip_on(False)
         ax.add_line(line)
         start_text = pre_val
@@ -130,7 +127,7 @@ def draw_labels(fig, ax, out_value, features, feature_type, offset_text, total_e
 
         text_out_val = plt.text(start_text - sign * offset_text,
                                 -0.15, text,
-                                fontsize=12, color=colors[feature_type],
+                                fontsize=12, color=color[feature_type],
                                 horizontalalignment=alignment,
                                 va=va_alignment,
                                 rotation=text_rotation)
@@ -155,7 +152,7 @@ def draw_labels(fig, ax, out_value, features, feature_type, offset_text, total_e
         # Create end line
         if (sign * box_end_) > (sign * val):
             x, y = np.array([[val, val], [0, -0.18]])
-            line = lines.Line2D(x, y, lw=1., alpha=0.5, color=colors[feature_type])
+            line = lines.Line2D(x, y, lw=1., alpha=0.5, color=color[feature_type])
             line.set_clip_on(False)
             ax.add_line(line)
             start_text = val
@@ -165,7 +162,7 @@ def draw_labels(fig, ax, out_value, features, feature_type, offset_text, total_e
             box_end = box_end_ - sign * offset_text
             x, y = np.array([[val, box_end, box_end],
                              [0, -0.08, -0.18]])
-            line = lines.Line2D(x, y, lw=1., alpha=0.5, color=colors[feature_type])
+            line = lines.Line2D(x, y, lw=1., alpha=0.5, color=color[feature_type])
             line.set_clip_on(False)
             ax.add_line(line)
             start_text = box_end
@@ -193,7 +190,7 @@ def draw_labels(fig, ax, out_value, features, feature_type, offset_text, total_e
         ax.set_xlim(lower_lim, box_end)
 
     # Create shading
-    cm = matplotlib.colors.LinearSegmentedColormap.from_list('cm', [colors[feature_type], 'white'])
+    cm = matplotlib.colors.LinearSegmentedColormap.from_list('cm', [color[feature_type], 'white'])
 
     _, Z2 = np.meshgrid(np.linspace(0, 10), np.linspace(-10, 10))
     im = plt.imshow(Z2, interpolation='quadric', cmap=cm,
@@ -299,27 +296,27 @@ def draw_base_element(base_value, ax):
     text_out_val.set_bbox(dict(facecolor='white', edgecolor='white'))
 
 
-def draw_higher_lower_element(out_value, offset_text, colors=None):
-    if colors is None:
-        colors = {
-            'positive': '#FF0D57',
-            'negative': '#1E88E5',
+def draw_higher_lower_element(out_value, offset_text, color=None):
+    if color is None:
+        color = {
+            'positive': color.red_rgb,
+            'negative': color.blue_rgb,
         }
 
     plt.text(out_value - offset_text, 0.405, 'higher',
-             fontsize=13, color=colors["positive"],
+             fontsize=13, color=color["positive"],
              horizontalalignment='right')
 
     plt.text(out_value + offset_text, 0.405, 'lower',
-             fontsize=13, color=colors["negative"],
+             fontsize=13, color=color["negative"],
              horizontalalignment='left')
 
     plt.text(out_value, 0.4, r'$\leftarrow$',
-             fontsize=13, color=colors["negative"],
+             fontsize=13, color=color["negative"],
              horizontalalignment='center')
 
     plt.text(out_value, 0.425, r'$\rightarrow$',
-             fontsize=13, color=colors["positive"],
+             fontsize=13, color=color["positive"],
              horizontalalignment='center')
 
 
@@ -374,19 +371,19 @@ def draw_additive_plot(data, figsize, show, text_rotation=0, min_perc=0.05, plot
     width_separators = (ax.get_xlim()[1] - ax.get_xlim()[0]) / 200
 
     if isinstance(plot_cmap, str):
-        colors = {
+        color = {
             "positive": matplotlib.colormaps[plot_cmap](0.0),
             "negative": matplotlib.colormaps[plot_cmap](1.0),
         }
     elif isinstance(plot_cmap, list):
-        colors = {
+        color = {
             "positive": plot_cmap[0],
             "negative": plot_cmap[1],
         }
 
     # Create bar for negative shap values
     rectangle_list, separator_list = draw_bars(out_value, neg_features, 'negative',
-                                               width_separators, width_bar, colors=colors)
+                                               width_separators, width_bar, colors=color)
     for i in rectangle_list:
         ax.add_patch(i)
 
@@ -395,7 +392,7 @@ def draw_additive_plot(data, figsize, show, text_rotation=0, min_perc=0.05, plot
 
     # Create bar for positive shap values
     rectangle_list, separator_list = draw_bars(out_value, pos_features, 'positive',
-                                               width_separators, width_bar, colors=colors)
+                                               width_separators, width_bar, colors=color)
     for i in rectangle_list:
         ax.add_patch(i)
 
@@ -405,13 +402,13 @@ def draw_additive_plot(data, figsize, show, text_rotation=0, min_perc=0.05, plot
     # Add labels
     total_effect = np.abs(total_neg) + total_pos
     fig, ax = draw_labels(fig, ax, out_value, neg_features, 'negative',
-                          offset_text, total_effect, min_perc=min_perc, text_rotation=text_rotation, colors=colors)
+                          offset_text, total_effect, min_perc=min_perc, text_rotation=text_rotation, colors=color)
 
     fig, ax = draw_labels(fig, ax, out_value, pos_features, 'positive',
-                          offset_text, total_effect, min_perc=min_perc, text_rotation=text_rotation, colors=colors)
+                          offset_text, total_effect, min_perc=min_perc, text_rotation=text_rotation, colors=color)
 
     # higher lower legend
-    draw_higher_lower_element(out_value, offset_text, colors=colors)
+    draw_higher_lower_element(out_value, offset_text, colors=color)
 
     # Add label for base value
     draw_base_element(base_value, ax)

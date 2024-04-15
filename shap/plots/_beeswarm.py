@@ -454,7 +454,8 @@ def summary_legacy(shap_values, features=None, feature_names=None, max_display=N
                  show_values_in_legend=False,
                  # depreciated
                  auto_size_plot=None,
-                 use_log_scale=False):
+                 use_log_scale=False,
+                 list_colors=None,):
     """Create a SHAP beeswarm plot, colored by feature values when they are provided.
 
     Parameters
@@ -522,8 +523,13 @@ def summary_legacy(shap_values, features=None, feature_names=None, max_display=N
         if plot_type == 'layered_violin':
             color = "coolwarm"
         elif multi_class:
-            def color(i):
-                return colors.red_blue_circle(i / len(shap_values))
+            if list_colors is None:
+                def color(i):
+                    return colors.red_blue_circle(i / len(shap_values))
+            else:
+                def color(i):
+                    idx = i%len(shap_values)
+                    return list_colors[idx]
         else:
             color = colors.blue_rgb
 
