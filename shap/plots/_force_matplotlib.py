@@ -1,5 +1,3 @@
-import colorsys
-
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,12 +11,11 @@ def draw_bars(out_value, features, feature_type, width_separators, width_bar, co
     """Draw the bars and separators."""
     rectangle_list = []
     separator_list = []
-
     if colors is None:
         colors = {
-            'positive': ['#ff0d55', '#ffc2d4'],
+            'positive': ['#ff0d55'],
             # 'negative': ['#2197ff', '#d6ecff'],
-            'negative': ['#1f77b4', '#d6ecff'],
+            'negative': ['#1f77b4'],
         }
 
     pre_val = out_value
@@ -30,6 +27,8 @@ def draw_bars(out_value, features, feature_type, width_separators, width_bar, co
 
             separator_indent = np.abs(width_separators)
             separator_pos = left_bound
+            # colors = ['#FF0D57', '#FFC3D5']
+            # colors = ['#ff7f0e', '#FFC3D5']
         else:
             left_bound = pre_val
             right_bound = float(features[0])
@@ -37,38 +36,36 @@ def draw_bars(out_value, features, feature_type, width_separators, width_bar, co
 
             separator_indent = - np.abs(width_separators)
             separator_pos = right_bound
+            # colors = ['#1E88E5', '#D1E6FA']
+            # colors = ['#1f77b4', '#D1E6FA']
 
         # Create rectangle
         if index == 0:
             if feature_type == 'positive':
-                points_rectangle = [
-                    [left_bound, 0],
-                    [right_bound, 0],
-                    [right_bound, width_bar],
-                    [left_bound, width_bar],
-                    [left_bound + separator_indent, (width_bar / 2)],
-                ]
+                points_rectangle = [[left_bound, 0],
+                                    [right_bound, 0],
+                                    [right_bound, width_bar],
+                                    [left_bound, width_bar],
+                                    [left_bound + separator_indent, (width_bar / 2)]
+                                    ]
             else:
-                points_rectangle = [
-                    [right_bound, 0],
-                    [left_bound, 0],
-                    [left_bound, width_bar],
-                    [right_bound, width_bar],
-                    [right_bound + separator_indent, (width_bar / 2)],
-                ]
+                points_rectangle = [[right_bound, 0],
+                                    [left_bound, 0],
+                                    [left_bound, width_bar],
+                                    [right_bound, width_bar],
+                                    [right_bound + separator_indent, (width_bar / 2)]
+                                    ]
 
         else:
-            points_rectangle = [
-                [left_bound, 0],
-                [right_bound, 0],
-                [right_bound + separator_indent * 0.90, (width_bar / 2)],
-                [right_bound, width_bar],
-                [left_bound, width_bar],
-                [left_bound + separator_indent * 0.90, (width_bar / 2)],
-            ]
+            points_rectangle = [[left_bound, 0],
+                                [right_bound, 0],
+                                [right_bound + separator_indent * 0.90, (width_bar / 2)],
+                                [right_bound, width_bar],
+                                [left_bound, width_bar],
+                                [left_bound + separator_indent * 0.90, (width_bar / 2)]]
 
         line = plt.Polygon(points_rectangle, closed=True, fill=True,
-                           facecolor=colors[feature_type][0], linewidth=0)
+                           facecolor=colors[feature_type], linewidth=0)
         rectangle_list += [line]
 
         # Create separator
@@ -77,7 +74,7 @@ def draw_bars(out_value, features, feature_type, width_separators, width_bar, co
                             [separator_pos, width_bar]]
 
         line = plt.Polygon(points_separator, closed=None, fill=None,
-                           edgecolor=colors[feature_type][1], lw=3)
+                           edgecolor=colors[feature_type], alpha=0.5, lw=3)
         separator_list += [line]
 
     return rectangle_list, separator_list
@@ -86,33 +83,25 @@ def draw_bars(out_value, features, feature_type, width_separators, width_bar, co
 def draw_labels(fig, ax, out_value, features, feature_type, offset_text, total_effect=0, min_perc=0.05, text_rotation=0, colors=None):
     start_text = out_value
     pre_val = out_value
-
-    def hex_to_rgb(value):
-        value = value.lstrip('#')
-        lv = len(value)
-        return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
-
+    
     if colors is None:
         colors = {
-            'positive': ['#ff0d55', '#ffc2d4'],
-            # 'negative': ['#2197ff', '#d6ecff'],
-            'negative': ['#1f77b4', '#d6ecff'],
+            'positive': '#ff0d55',
+            'negative': '#1f77b4',
         }
 
     # Define variables specific to positive and negative effect features
     if feature_type == 'positive':
-        # colors = ['#FF0D57', '#FFC3D5']
         alignment = 'right'
         sign = 1
     else:
-        # colors = ['#1E88E5', '#D1E6FA']
         alignment = 'left'
         sign = -1
 
     # Draw initial line
     if feature_type == 'positive':
         x, y = np.array([[pre_val, pre_val], [0, -0.18]])
-        line = lines.Line2D(x, y, lw=1., alpha=0.5, color=colors[feature_type][0])
+        line = lines.Line2D(x, y, lw=1., alpha=0.5, color=colors[feature_type])
         line.set_clip_on(False)
         ax.add_line(line)
         start_text = pre_val
@@ -141,7 +130,7 @@ def draw_labels(fig, ax, out_value, features, feature_type, offset_text, total_e
 
         text_out_val = plt.text(start_text - sign * offset_text,
                                 -0.15, text,
-                                fontsize=12, color=colors[feature_type][0],
+                                fontsize=12, color=colors[feature_type],
                                 horizontalalignment=alignment,
                                 va=va_alignment,
                                 rotation=text_rotation)
@@ -157,10 +146,16 @@ def draw_labels(fig, ax, out_value, features, feature_type, offset_text, total_e
         else:
             box_end_ = box_size.get_points()[1][0]
 
+        # If the feature goes over the side of the plot, we remove that label
+        # and stop drawing labels
+        if box_end_ > ax.get_xlim()[1]:
+            text_out_val.remove()
+            break
+
         # Create end line
         if (sign * box_end_) > (sign * val):
             x, y = np.array([[val, val], [0, -0.18]])
-            line = lines.Line2D(x, y, lw=1., alpha=0.5, color=colors[feature_type][0])
+            line = lines.Line2D(x, y, lw=1., alpha=0.5, color=colors[feature_type])
             line.set_clip_on(False)
             ax.add_line(line)
             start_text = val
@@ -170,7 +165,7 @@ def draw_labels(fig, ax, out_value, features, feature_type, offset_text, total_e
             box_end = box_end_ - sign * offset_text
             x, y = np.array([[val, box_end, box_end],
                              [0, -0.08, -0.18]])
-            line = lines.Line2D(x, y, lw=1., alpha=0.5, color=colors[feature_type][0])
+            line = lines.Line2D(x, y, lw=1., alpha=0.5, color=colors[feature_type])
             line.set_clip_on(False)
             ax.add_line(line)
             start_text = box_end
@@ -198,12 +193,7 @@ def draw_labels(fig, ax, out_value, features, feature_type, offset_text, total_e
         ax.set_xlim(lower_lim, box_end)
 
     # Create shading
-    # if feature_type == 'positive':
-    #     colors = np.array([(255, 13, 87), (255, 255, 255)]) / 255.
-    # else:
-    #     colors = np.array([(30, 136, 229), (255, 255, 255)]) / 255.
-
-    cm = matplotlib.colors.LinearSegmentedColormap.from_list('cm', [colors[feature_type][0], 'white'])
+    cm = matplotlib.colors.LinearSegmentedColormap.from_list('cm', [colors[feature_type], 'white'])
 
     _, Z2 = np.meshgrid(np.linspace(0, 10), np.linspace(-10, 10))
     im = plt.imshow(Z2, interpolation='quadric', cmap=cm,
@@ -358,7 +348,7 @@ def update_axis_limits(ax, total_pos, pos_features, total_neg,
             spine.set_visible(False)
 
 
-def draw_additive_plot(data, figsize, show, text_rotation=0, min_perc=0.05):
+def draw_additive_plot(data, figsize, show, text_rotation=0, min_perc=0.05, plot_cmap="RdBu"):
     """Draw additive plot."""
     # Turn off interactive plot
     if show is False:
@@ -383,9 +373,20 @@ def draw_additive_plot(data, figsize, show, text_rotation=0, min_perc=0.05):
     width_bar = 0.1
     width_separators = (ax.get_xlim()[1] - ax.get_xlim()[0]) / 200
 
+    if isinstance(plot_cmap, str):
+        colors = {
+            "positive": matplotlib.colormaps[plot_cmap][0],
+            "negative": matplotlib.colormaps[plot_cmap][-1],
+        }
+    elif isinstance(plot_cmap, list):
+        colors = {
+            "positive": plot_cmap[0],
+            "negative": plot_cmap[1],
+        }
+
     # Create bar for negative shap values
     rectangle_list, separator_list = draw_bars(out_value, neg_features, 'negative',
-                                               width_separators, width_bar)
+                                               width_separators, width_bar, colors=colors)
     for i in rectangle_list:
         ax.add_patch(i)
 
@@ -394,7 +395,7 @@ def draw_additive_plot(data, figsize, show, text_rotation=0, min_perc=0.05):
 
     # Create bar for positive shap values
     rectangle_list, separator_list = draw_bars(out_value, pos_features, 'positive',
-                                               width_separators, width_bar)
+                                               width_separators, width_bar, colors=colors)
     for i in rectangle_list:
         ax.add_patch(i)
 
@@ -404,13 +405,13 @@ def draw_additive_plot(data, figsize, show, text_rotation=0, min_perc=0.05):
     # Add labels
     total_effect = np.abs(total_neg) + total_pos
     fig, ax = draw_labels(fig, ax, out_value, neg_features, 'negative',
-                          offset_text, total_effect, min_perc=min_perc, text_rotation=text_rotation)
+                          offset_text, total_effect, min_perc=min_perc, text_rotation=text_rotation, colors=colors)
 
     fig, ax = draw_labels(fig, ax, out_value, pos_features, 'positive',
-                          offset_text, total_effect, min_perc=min_perc, text_rotation=text_rotation)
+                          offset_text, total_effect, min_perc=min_perc, text_rotation=text_rotation, colors=colors)
 
     # higher lower legend
-    draw_higher_lower_element(out_value, offset_text)
+    draw_higher_lower_element(out_value, offset_text, colors=colors)
 
     # Add label for base value
     draw_base_element(base_value, ax)
