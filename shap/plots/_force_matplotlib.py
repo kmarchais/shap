@@ -375,8 +375,8 @@ def draw_additive_plot(data, figsize, show, text_rotation=0, min_perc=0.05, plot
 
     if isinstance(plot_cmap, str):
         colors = {
-            "positive": matplotlib.colormaps[plot_cmap][0],
-            "negative": matplotlib.colormaps[plot_cmap][-1],
+            "positive": matplotlib.colormaps[plot_cmap](0.0),
+            "negative": matplotlib.colormaps[plot_cmap](1.0),
         }
     elif isinstance(plot_cmap, list):
         colors = {
